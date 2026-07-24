@@ -120,6 +120,47 @@ grouped:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
           opacity: 1.0
 
+spatial-grouped:
+  name: Spatial Grouped
+  description: >-
+    Mocked IO — exercises the spatial grouper: events split by the mocked
+    spatial feature group regions (Central / East / West), in count mode.
+  mock_io: true
+  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # mock-io system; its stock example-return has a single row. Override it with
+  # a rich fixture (784 events, title-mapped numeric details) so the density
+  # rendering is exercised on real spatial spread.
+  mock_io_overrides:
+    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
+  params:
+    workflow_details:
+      name: "Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "er_asia"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
+    get_events_data:
+      event_types: []
+    groupers:
+      groupers:
+        # Must match the mock feature group's metadata.display_name — the
+        # resolve task keys its lookup on that, not on the requested name.
+        - spatial_index_name: "SpatialGrouperTest"
+    agg_column_input:
+      var: ""
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+
 mep_dev:
   name: MEP Dev
   description: >-

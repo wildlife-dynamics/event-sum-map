@@ -160,13 +160,25 @@
                   },
                   {
                     "$ref": "#/$defs/TemporalGrouper"
+                  },
+                  {
+                    "$ref": "#/$defs/SpatialGrouper"
                   }
                 ],
                 "title": "Group by"
               },
               "title": " ",
               "type": "array",
-              "description": ""
+              "description": "",
+              "ecoscope:transform": [
+                {
+                  "transformer": "EarthRangerEnumResolver",
+                  "transformer_kws": {
+                    "type": "spatial_feature_group",
+                    "depends_on": "properties.er_client_name.properties.data_source.properties.name"
+                  }
+                }
+              ]
             }
           },
           "type": "object",

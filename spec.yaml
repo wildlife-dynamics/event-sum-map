@@ -31,9 +31,15 @@ rjsf-overrides:
     # --- Group Data: grouper override (labeled Category dropdown + Time) ---
     "Group Data.properties.groupers.title": ""
     "Group Data.properties.groupers.properties.groupers.description": ""
+    "Group Data.properties.groupers.properties.groupers.ecoscope:transform":
+      - transformer: EarthRangerEnumResolver
+        transformer_kws:
+          type: spatial_feature_group
+          depends_on: properties.er_client_name.properties.data_source.properties.name
     "Group Data.properties.groupers.properties.groupers.items.anyOf":
       - {"$ref": "#/$defs/ValueGrouper"}
       - {"$ref": "#/$defs/TemporalGrouper"}
+      - {"$ref": "#/$defs/SpatialGrouper"}
 
     "base_map_defs.properties.base_maps.default":
       - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
@@ -234,15 +240,46 @@ workflow:
         id: groupers
         task: set_groupers
 
+  # Spatial groupers: fetch the selected spatial feature groups from ER and
+  # resolve them onto the grouper specs (events workflow pattern).
+  - task: extract_spatial_grouper_feature_group_names
+    id: spatial_group_ids
+    partial:
+      groupers: ${{ workflow.groupers.return }}
+
+  - task: get_spatial_features_group
+    id: fetch_all_spatial_feature_groups
+    partial:
+      client: ${{ workflow.er_client_name.return }}
+    map:
+      argnames: spatial_features_group_name
+      argvalues: ${{ workflow.spatial_group_ids.return }}
+
+  - task: resolve_spatial_feature_groups_for_spatial_groupers
+    id: resolved_groupers
+    skipif:
+      conditions:
+        - never
+    partial:
+      groupers: ${{ workflow.groupers.return }}
+      spatial_feature_groups: ${{ workflow.fetch_all_spatial_feature_groups.return }}
+
   - name: Add Temporal Index to Events
     id: events_add_temporal_index
     task: add_temporal_index
     partial:
       df: ${{ workflow.filter_events.return }}
       time_col: time
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
       cast_to_datetime: true
       format: mixed
+
+  - name: Add Spatial Index to Events
+    id: events_add_spatial_index
+    task: add_spatial_index
+    partial:
+      gdf: ${{ workflow.events_add_temporal_index.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
 
   # ---------- Event Sum Map settings ----------
   - title: Event Sum Map
@@ -284,7 +321,7 @@ workflow:
     id: add_count_column
     task: assign_value
     partial:
-      df: ${{ workflow.events_add_temporal_index.return }}
+      df: ${{ workflow.events_add_spatial_index.return }}
       column_name: __event_count__
       value: 1
       noop_if_column_exists: false
@@ -326,7 +363,7 @@ workflow:
     task: split_groups
     partial:
       df: ${{ workflow.agg_to_numeric.return }}
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
 
   # ---------- Event Sum Map (gridded totals) ----------
   - title: Event Sum Map Rendering
@@ -493,5 +530,5 @@ workflow:
       details: ${{ workflow.workflow_details.return }}
       widgets:
         - ${{ workflow.esm_widget_merged.return }}
-      groupers: ${{ workflow.groupers.return }}
+      groupers: ${{ workflow.resolved_groupers.return }}
       time_range: ${{ workflow.time_range.return }}
