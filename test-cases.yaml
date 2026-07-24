@@ -1,16 +1,138 @@
-# Test cases for event_sum_map
-# Each top-level key is a test case name. Fields per case:
-#   name: str                  - Human-readable name
-#   description: str           - What the test case covers
-#   params: dict               - Workflow parameters
-#   raises: bool               - Whether an error is expected (default: false)
-#   expected_status_code: int  - Expected HTTP status (default: 200)
-#
-# Example:
-# my-test-case:
-#   name: My Test Case
-#   description: Tests the default workflow behavior
-#   params:
-#     param_name: value
-#   raises: false
-#   expected_status_code: 200
+base:
+  name: Base
+  description: >-
+    Mocked IO — count mode (Aggregate Column left empty): the map totals the
+    constant ones column, i.e. counts events per grid cell.
+  mock_io: true
+  params:
+    workflow_details:
+      name: "Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "er_asia"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
+    get_events_data:
+      event_types: ["wildlife_sighting_rep"]
+    groupers:
+      groupers: []                      # single view; set a grouper to split
+    agg_column_input:
+      var: ""                           # empty -> count events per cell
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+
+sum-column:
+  name: Sum Column
+  description: >-
+    Mocked IO — sum mode: totals a numeric column per grid cell (mock events
+    carry no event_details, so serial_number stands in for a numeric details
+    field). Also exercises the density-map Advanced Configurations (custom grid
+    cell size + heatmap opacity).
+  mock_io: true
+  params:
+    workflow_details:
+      name: "Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "er_asia"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
+    get_events_data:
+      event_types: ["wildlife_sighting_rep", "hwc_rep"]
+    groupers:
+      groupers: []
+    agg_column_input:
+      var: "serial_number"
+    density_grid_options:              # the Advanced Configurations accordion
+      opacity: 0.5
+      auto_scale_or_custom_cell_size:
+        auto_scale_or_custom: "Customize"
+        grid_cell_size: 2500
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+
+grouped:
+  name: Grouped
+  description: >-
+    Mocked IO — exercises the Group Data card: a value grouper (event type)
+    plus a monthly temporal grouper, in count mode.
+  mock_io: true
+  params:
+    workflow_details:
+      name: "Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "er_asia"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "UTC (UTC+00:00)"
+        tzCode: "UTC"
+        name: "(UTC+00:00) UTC"
+        utc: "+00:00"
+    get_events_data:
+      event_types: []
+    groupers:
+      groupers:
+        - index_name: "event_type"
+        - temporal_index: "%B"
+    agg_column_input:
+      var: ""
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+
+mep_dev:
+  name: MEP Dev
+  description: >-
+    Live EarthRanger (mep-dev), 2015 seeded events data (same window as the
+    events workflow's live cases). Count mode across all event types.
+  mock_io: false
+  params:
+    workflow_details:
+      name: "Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "mep_dev"
+    time_range:
+      since: "2015-01-01T00:00:00"
+      until: "2015-12-31T23:59:59"
+      timezone:
+        label: "Africa/Nairobi (UTC+03:00)"
+        tzCode: "Africa/Nairobi"
+        name: "(UTC+03:00) Nairobi"
+        utc: "+03:00"
+    get_events_data:
+      event_types: []
+    groupers:
+      groupers: []
+    agg_column_input:
+      var: ""
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          opacity: 0.5
