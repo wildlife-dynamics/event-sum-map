@@ -259,6 +259,7 @@ workflow:
       df: ${{ workflow.events_add_temporal_index.return }}
       column_name: __event_count__
       value: 1
+      noop_if_column_exists: false
 
   # Guarantee the chosen column exists (all-NaN when absent) so the density
   # task never KeyErrors on a typo'd or partially-populated details field.

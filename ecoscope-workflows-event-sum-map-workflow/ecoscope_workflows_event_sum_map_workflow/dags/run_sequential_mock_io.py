@@ -450,6 +450,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             df=events_add_temporal_index,
             column_name="__event_count__",
             value=1,
+            noop_if_column_exists=False,
             **(params.get("add_count_column") or {}),
         )
         .call()

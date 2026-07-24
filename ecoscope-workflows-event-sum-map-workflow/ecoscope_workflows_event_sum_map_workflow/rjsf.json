@@ -237,20 +237,6 @@
         }
       }
     },
-    "add_count_column": {
-      "additionalProperties": false,
-      "properties": {
-        "noop_if_column_exists": {
-          "default": false,
-          "title": "Noop If Column Exists",
-          "type": "boolean",
-          "description": "If set to true and column_name exists on df, do nothing"
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Add Event Count Column"
-    },
     "base_map_defs": {
       "additionalProperties": false,
       "properties": {
@@ -745,7 +731,6 @@
       "Filter Data",
       "Group Data",
       "Event Sum Map",
-      "add_count_column",
       "base_map_defs"
     ],
     "base_map_defs": {
