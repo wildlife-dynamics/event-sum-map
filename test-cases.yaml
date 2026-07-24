@@ -4,6 +4,12 @@ base:
     Mocked IO — count mode (Aggregate Column left empty): the map totals the
     constant ones column, i.e. counts events per grid cell.
   mock_io: true
+  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # mock-io system; its stock example-return has a single row. Override it with
+  # a rich fixture (784 events, title-mapped numeric details) so the density
+  # rendering is exercised on real spatial spread.
+  mock_io_overrides:
+    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -33,11 +39,16 @@ base:
 sum-column:
   name: Sum Column
   description: >-
-    Mocked IO — sum mode: totals a numeric column per grid cell (mock events
-    carry no event_details, so serial_number stands in for a numeric details
-    field). Also exercises the density-map Advanced Configurations (custom grid
-    cell size + heatmap opacity).
+    Mocked IO — sum mode: totals the "Number of Animals" details field per
+    grid cell. Also exercises the density-map Advanced Configurations (custom
+    grid cell size + heatmap opacity).
   mock_io: true
+  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # mock-io system; its stock example-return has a single row. Override it with
+  # a rich fixture (784 events, title-mapped numeric details) so the density
+  # rendering is exercised on real spatial spread.
+  mock_io_overrides:
+    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -58,7 +69,7 @@ sum-column:
     groupers:
       groupers: []
     agg_column_input:
-      var: "serial_number"
+      var: "Number of Animals"
     density_grid_options:              # the Advanced Configurations accordion
       opacity: 0.5
       auto_scale_or_custom_cell_size:
@@ -75,6 +86,12 @@ grouped:
     Mocked IO — exercises the Group Data card: a value grouper (event type)
     plus a monthly temporal grouper, in count mode.
   mock_io: true
+  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # mock-io system; its stock example-return has a single row. Override it with
+  # a rich fixture (784 events, title-mapped numeric details) so the density
+  # rendering is exercised on real spatial spread.
+  mock_io_overrides:
+    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"

@@ -70,8 +70,11 @@ from ecoscope.platform.tasks.transformation import (
     normalize_json_column as normalize_json_column,
 )
 from ecoscope.platform.tasks.transformation import sort_values as sort_values
-from ecoscope.platform.tasks.transformation import (
-    strip_prefix_from_column_names as strip_prefix_from_column_names,
+from ecoscope_workflows_ext_custom.tasks.io import (
+    process_events_details as process_events_details,
+)
+from ecoscope_workflows_ext_custom.tasks.transformation import (
+    drop_column_prefix as drop_column_prefix,
 )
 from wt_contracts import validate as _validate
 from wt_task import task
@@ -205,6 +208,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             df=get_events_data,
             timezone=get_timezone,
             columns=["time"],
+            auto_detect=False,
             **(params.get("convert_events_tz") or {}),
         )
         .call()
@@ -234,6 +238,29 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    process_event_details = (
+        task(process_events_details)
+        .validate()
+        .set_task_instance_id("process_event_details")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=extract_reported_by,
+            client=er_client_name,
+            map_to_titles=True,
+            ordered=True,
+            **(params.get("process_event_details") or {}),
+        )
+        .call()
+    )
+
     normalize_event_details = (
         task(normalize_json_column)
         .validate()
@@ -248,7 +275,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=extract_reported_by,
+            df=process_event_details,
             column="event_details",
             skip_if_not_exists=True,
             sort_columns=False,
@@ -257,10 +284,10 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
-    strip_event_details_prefix = (
-        task(strip_prefix_from_column_names)
+    drop_event_details_prefix = (
+        task(drop_column_prefix)
         .validate()
-        .set_task_instance_id("strip_event_details_prefix")
+        .set_task_instance_id("drop_event_details_prefix")
         .handle_errors()
         .with_tracing()
         .skipif(
@@ -273,7 +300,31 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             df=normalize_event_details,
             prefix="event_details__",
-            **(params.get("strip_event_details_prefix") or {}),
+            duplicate_strategy="suffix",
+            **(params.get("drop_event_details_prefix") or {}),
+        )
+        .call()
+    )
+
+    convert_event_details_timezone = (
+        task(convert_values_to_timezone)
+        .validate()
+        .set_task_instance_id("convert_event_details_timezone")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=drop_event_details_prefix,
+            timezone=get_timezone,
+            columns=[],
+            auto_detect=True,
+            **(params.get("convert_event_details_timezone") or {}),
         )
         .call()
     )
@@ -292,7 +343,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=strip_event_details_prefix,
+            df=convert_event_details_timezone,
             roi_gdf=None,
             roi_name=None,
             reset_index=True,

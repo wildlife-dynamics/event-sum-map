@@ -186,7 +186,7 @@
             "var": {
               "title": "Aggregate Column",
               "type": "string",
-              "description": "Event details field whose values are totaled per grid cell (for example number_of_animals). Leave empty to count events per cell instead.",
+              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead.",
               "default": ""
             }
           },

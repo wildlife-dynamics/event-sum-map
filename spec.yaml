@@ -7,6 +7,10 @@ requirements:
   - name: ecoscope-platform
     version: ">=2.16.3, <2.17.0"
     channel: https://repo.prefix.dev/ecoscope-workflows/
+  # process_events_details / drop_column_prefix (wt-download-events details chain).
+  - name: ecoscope-workflows-ext-custom
+    version: 0.1.0rc18
+    channel: https://repo.prefix.dev/ecoscope-workflows-custom/
   # ecoscope-platform already declares this exact pydeck dependency. It is
   # re-stated here as a workaround for a known issue. For further detail, see:
   # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
@@ -41,8 +45,9 @@ rjsf-overrides:
     "Event Sum Map.properties.agg_column_input.title": ""
     "Event Sum Map.properties.agg_column_input.properties.var.title": "Aggregate Column"
     "Event Sum Map.properties.agg_column_input.properties.var.description": >-
-      Event details field whose values are totaled per grid cell (for example number_of_animals).
-      Leave empty to count events per cell instead.
+      Event details field whose values are totaled per grid cell, using the field title
+      shown in EarthRanger (for example Number of Animals). Leave empty to count events
+      per cell instead.
     "Event Sum Map.properties.agg_column_input.properties.var.default": ""
     "Event Sum Map.properties.density_grid_options.title": ""
 
@@ -150,6 +155,7 @@ workflow:
       timezone: ${{ workflow.get_timezone.return }}
       columns:
         - time
+      auto_detect: false
 
   - name: Extract Reported By Name
     id: extract_reported_by
@@ -162,24 +168,46 @@ workflow:
       output_type: str
       output_column_name: reported_by_name
 
-  # Flatten event_details into top-level columns so the user-chosen aggregate
-  # column is addressable by its plain field name. skip_if_not_exists guards
-  # sources (and mocked data) without an event_details column.
+  # Details chain (wt-download-events pattern): resolve event_details against
+  # the ER event-type schemas (keys -> display titles, enums -> labels), then
+  # flatten into top-level columns so the user-chosen Aggregate Column is
+  # addressable by the display title shown in EarthRanger.
+  - name: Process Event Details
+    id: process_event_details
+    task: process_events_details
+    partial:
+      df: ${{ workflow.extract_reported_by.return }}
+      client: ${{ workflow.er_client_name.return }}
+      map_to_titles: true
+      ordered: true
+
   - name: Normalize Event Details
     id: normalize_event_details
     task: normalize_json_column
     partial:
-      df: ${{ workflow.extract_reported_by.return }}
+      df: ${{ workflow.process_event_details.return }}
       column: event_details
       skip_if_not_exists: true
       sort_columns: false
 
-  - name: Strip Event Details Prefix
-    id: strip_event_details_prefix
-    task: strip_prefix_from_column_names
+  # Collision-safe prefix removal: a details field that shadows a core column
+  # (e.g. "time") gets a _1 suffix instead of silently duplicating.
+  - name: Remove Event Details Prefix
+    id: drop_event_details_prefix
+    task: drop_column_prefix
     partial:
       df: ${{ workflow.normalize_event_details.return }}
       prefix: event_details__
+      duplicate_strategy: suffix
+
+  - name: Convert Event Detail Datetimes to Timezone
+    id: convert_event_details_timezone
+    task: convert_values_to_timezone
+    partial:
+      df: ${{ workflow.drop_event_details_prefix.return }}
+      timezone: ${{ workflow.get_timezone.return }}
+      columns: []
+      auto_detect: true
 
   # ---------- Filter Data ----------
   - title: Filter Data
@@ -190,7 +218,7 @@ workflow:
         id: filter_events
         task: apply_reloc_coord_filter
         partial:
-          df: ${{ workflow.strip_event_details_prefix.return }}
+          df: ${{ workflow.convert_event_details_timezone.return }}
           roi_gdf: null
           roi_name: null
           reset_index: true
