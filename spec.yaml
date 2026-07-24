@@ -89,15 +89,6 @@ rjsf-overrides:
             ui:widget: hidden
       auto_scale_or_custom:
         ui:widget: hidden
-    ui:order:
-      - workflow_details
-      - er_client_name
-      - time_range
-      - get_events_data
-      - Filter Data
-      - Group Data
-      - Event Sum Map
-      - base_map_defs
 
 task-instance-defaults:
   skipif:
