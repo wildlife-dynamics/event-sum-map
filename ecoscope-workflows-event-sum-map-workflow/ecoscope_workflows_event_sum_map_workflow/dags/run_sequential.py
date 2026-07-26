@@ -9,9 +9,6 @@ from ecoscope.platform.tasks.config import (
     call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
 )
 from ecoscope.platform.tasks.config import (
-    default_if_string_is_empty as default_if_string_is_empty,
-)
-from ecoscope.platform.tasks.config import (
     get_opacity_from_combined_params as get_opacity_from_combined_params,
 )
 from ecoscope.platform.tasks.config import (
@@ -30,6 +27,7 @@ from ecoscope.platform.tasks.io import (
     get_spatial_features_group as get_spatial_features_group,
 )
 from ecoscope.platform.tasks.io import persist_text as persist_text
+from ecoscope.platform.tasks.io import process_events_details as process_events_details
 from ecoscope.platform.tasks.io import set_er_connection as set_er_connection
 from ecoscope.platform.tasks.results import (
     create_map_widget_single_view as create_map_widget_single_view,
@@ -58,12 +56,11 @@ from ecoscope.platform.tasks.transformation import apply_color_map as apply_colo
 from ecoscope.platform.tasks.transformation import (
     apply_reloc_coord_filter as apply_reloc_coord_filter,
 )
-from ecoscope.platform.tasks.transformation import assign_value as assign_value
-from ecoscope.platform.tasks.transformation import (
-    convert_column_values_to_numeric as convert_column_values_to_numeric,
-)
 from ecoscope.platform.tasks.transformation import (
     convert_values_to_timezone as convert_values_to_timezone,
+)
+from ecoscope.platform.tasks.transformation import (
+    drop_column_prefix as drop_column_prefix,
 )
 from ecoscope.platform.tasks.transformation import (
     drop_nan_values_by_column as drop_nan_values_by_column,
@@ -82,12 +79,6 @@ from ecoscope.platform.tasks.transformation import (
     resolve_spatial_feature_groups_for_spatial_groupers as resolve_spatial_feature_groups_for_spatial_groupers,
 )
 from ecoscope.platform.tasks.transformation import sort_values as sort_values
-from ecoscope_workflows_ext_custom.tasks.io import (
-    process_events_details as process_events_details,
-)
-from ecoscope_workflows_ext_custom.tasks.transformation import (
-    drop_column_prefix as drop_column_prefix,
-)
 from wt_contracts import validate as _validate
 from wt_task import task
 
@@ -483,148 +474,6 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
-    agg_column_input = (
-        task(set_string_var)
-        .validate()
-        .set_task_instance_id("agg_column_input")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(**(params.get("agg_column_input") or {}))
-        .call()
-    )
-
-    density_grid_options = (
-        task(set_density_grid_options)
-        .validate()
-        .set_task_instance_id("density_grid_options")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(intersecting_only=False, **(params.get("density_grid_options") or {}))
-        .call()
-    )
-
-    agg_column = (
-        task(default_if_string_is_empty)
-        .validate()
-        .set_task_instance_id("agg_column")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            value=agg_column_input,
-            default="__event_count__",
-            **(params.get("agg_column") or {}),
-        )
-        .call()
-    )
-
-    heatmap_opacity = (
-        task(get_opacity_from_combined_params)
-        .validate()
-        .set_task_instance_id("heatmap_opacity")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            combined_params=density_grid_options,
-            **(params.get("heatmap_opacity") or {}),
-        )
-        .call()
-    )
-
-    add_count_column = (
-        task(assign_value)
-        .validate()
-        .set_task_instance_id("add_count_column")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            df=events_add_spatial_index,
-            column_name="__event_count__",
-            value=1,
-            noop_if_column_exists=False,
-            **(params.get("add_count_column") or {}),
-        )
-        .call()
-    )
-
-    ensure_agg_column = (
-        task(assign_value)
-        .validate()
-        .set_task_instance_id("ensure_agg_column")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            df=add_count_column,
-            column_name=agg_column,
-            value=None,
-            noop_if_column_exists=True,
-            **(params.get("ensure_agg_column") or {}),
-        )
-        .call()
-    )
-
-    agg_to_numeric = (
-        task(convert_column_values_to_numeric)
-        .validate()
-        .set_task_instance_id("agg_to_numeric")
-        .handle_errors()
-        .with_tracing()
-        .skipif(
-            conditions=[
-                any_is_empty_df,
-                any_dependency_skipped,
-            ],
-            unpack_depth=1,
-        )
-        .partial(
-            df=ensure_agg_column,
-            columns=[agg_column],
-            **(params.get("agg_to_numeric") or {}),
-        )
-        .call()
-    )
-
     set_map_title = (
         task(set_string_var)
         .validate()
@@ -673,9 +522,46 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=agg_to_numeric,
+            df=events_add_spatial_index,
             groupers=resolved_groupers,
             **(params.get("split_event_groups") or {}),
+        )
+        .call()
+    )
+
+    density_grid_options = (
+        task(set_density_grid_options)
+        .validate()
+        .set_task_instance_id("density_grid_options")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(intersecting_only=False, **(params.get("density_grid_options") or {}))
+        .call()
+    )
+
+    heatmap_opacity = (
+        task(get_opacity_from_combined_params)
+        .validate()
+        .set_task_instance_id("heatmap_opacity")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            combined_params=density_grid_options,
+            **(params.get("heatmap_opacity") or {}),
         )
         .call()
     )
@@ -695,7 +581,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            aoi=agg_to_numeric,
+            aoi=events_add_spatial_index,
             combined_params=density_grid_options,
             **(params.get("events_meshgrid") or {}),
         )
@@ -718,7 +604,6 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             meshgrid=events_meshgrid,
             geometry_type="point",
-            sum_column=agg_column,
             **(params.get("grouped_event_density") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_event_groups)

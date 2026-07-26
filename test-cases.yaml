@@ -1,15 +1,15 @@
 base:
   name: Base
   description: >-
-    Mocked IO — count mode (Aggregate Column left empty): the map totals the
-    constant ones column, i.e. counts events per grid cell.
+    Mocked IO — count mode (Aggregate Column omitted): calculate_feature_density
+    counts events per grid cell when sum_column is empty.
   mock_io: true
-  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # process_events_details (platform) is tagged "io" and intercepted by the
   # mock-io system; its stock example-return has a single row. Override it with
   # a rich fixture (784 events, title-mapped numeric details) so the density
   # rendering is exercised on real spatial spread.
   mock_io_overrides:
-    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
+    ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -29,8 +29,6 @@ base:
       event_types: ["wildlife_sighting_rep"]
     groupers:
       groupers: []                      # single view; set a grouper to split
-    agg_column_input:
-      var: ""                           # empty -> count events per cell
     base_map_defs:
       base_maps:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
@@ -43,12 +41,12 @@ sum-column:
     grid cell. Also exercises the density-map Advanced Configurations (custom
     grid cell size + heatmap opacity).
   mock_io: true
-  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # process_events_details (platform) is tagged "io" and intercepted by the
   # mock-io system; its stock example-return has a single row. Override it with
   # a rich fixture (784 events, title-mapped numeric details) so the density
   # rendering is exercised on real spatial spread.
   mock_io_overrides:
-    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
+    ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -68,8 +66,8 @@ sum-column:
       event_types: ["wildlife_sighting_rep", "hwc_rep"]
     groupers:
       groupers: []
-    agg_column_input:
-      var: "Number of Animals"
+    grouped_event_density:
+      sum_column: "Number of Animals"
     density_grid_options:              # the Advanced Configurations accordion
       opacity: 0.5
       auto_scale_or_custom_cell_size:
@@ -86,12 +84,12 @@ grouped:
     Mocked IO — exercises the Group Data card: a value grouper (event type)
     plus a monthly temporal grouper, in count mode.
   mock_io: true
-  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # process_events_details (platform) is tagged "io" and intercepted by the
   # mock-io system; its stock example-return has a single row. Override it with
   # a rich fixture (784 events, title-mapped numeric details) so the density
   # rendering is exercised on real spatial spread.
   mock_io_overrides:
-    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
+    ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -113,8 +111,6 @@ grouped:
       groupers:
         - index_name: "event_type"
         - temporal_index: "%B"
-    agg_column_input:
-      var: ""
     base_map_defs:
       base_maps:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
@@ -126,12 +122,12 @@ spatial-grouped:
     Mocked IO — exercises the spatial grouper: events split by the mocked
     spatial feature group regions (Central / East / West), in count mode.
   mock_io: true
-  # process_events_details (custom-ext) is tagged "io" and intercepted by the
+  # process_events_details (platform) is tagged "io" and intercepted by the
   # mock-io system; its stock example-return has a single row. Override it with
   # a rich fixture (784 events, title-mapped numeric details) so the density
   # rendering is exercised on real spatial spread.
   mock_io_overrides:
-    ecoscope_workflows_ext_custom.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
+    ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
       name: "Event Sum Map"
@@ -154,8 +150,6 @@ spatial-grouped:
         # Must match the mock feature group's metadata.display_name — the
         # resolve task keys its lookup on that, not on the requested name.
         - spatial_index_name: "SpatialGrouperTest"
-    agg_column_input:
-      var: ""
     base_map_defs:
       base_maps:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
@@ -186,8 +180,6 @@ mep_dev:
       event_types: []
     groupers:
       groupers: []
-    agg_column_input:
-      var: ""
     base_map_defs:
       base_maps:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"

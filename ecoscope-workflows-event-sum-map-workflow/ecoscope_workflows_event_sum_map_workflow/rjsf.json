@@ -187,68 +187,6 @@
         }
       }
     },
-    "Event Sum Map": {
-      "type": "object",
-      "description": "Grid heatmap that totals a chosen event value \u2014 or counts events \u2014 per cell.",
-      "ecoscope:task_group": true,
-      "properties": {
-        "agg_column_input": {
-          "additionalProperties": false,
-          "properties": {
-            "var": {
-              "title": "Aggregate Column",
-              "type": "string",
-              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead.",
-              "default": ""
-            }
-          },
-          "required": [
-            "var"
-          ],
-          "type": "object",
-          "title": ""
-        },
-        "density_grid_options": {
-          "additionalProperties": false,
-          "properties": {
-            "opacity": {
-              "default": 0.7,
-              "maximum": 1.0,
-              "minimum": 0.0,
-              "title": "Heatmap Layer Opacity",
-              "type": "number",
-              "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
-              "ecoscope:advanced": true
-            },
-            "auto_scale_or_custom_cell_size": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/AutoScaleGridCellSize"
-                },
-                {
-                  "$ref": "#/$defs/CustomGridCellSize"
-                }
-              ],
-              "default": {
-                "auto_scale_or_custom": "Auto-scale"
-              },
-              "title": "Grid Cell Size",
-              "ecoscope:advanced": true
-            },
-            "crs": {
-              "default": "EPSG:3857",
-              "title": "Coordinate Reference System",
-              "type": "string",
-              "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
-              "ecoscope:advanced": true
-            }
-          },
-          "type": "object",
-          "required": [],
-          "title": ""
-        }
-      }
-    },
     "base_map_defs": {
       "additionalProperties": false,
       "properties": {
@@ -437,6 +375,66 @@
       "type": "object",
       "required": [],
       "title": "Map Base Layers"
+    },
+    "Event Sum Map": {
+      "type": "object",
+      "description": "Grid heatmap that totals a chosen event value \u2014 or counts events \u2014 per cell.",
+      "ecoscope:task_group": true,
+      "properties": {
+        "density_grid_options": {
+          "additionalProperties": false,
+          "properties": {
+            "opacity": {
+              "default": 0.7,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Heatmap Layer Opacity",
+              "type": "number",
+              "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
+              "ecoscope:advanced": true
+            },
+            "auto_scale_or_custom_cell_size": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/AutoScaleGridCellSize"
+                },
+                {
+                  "$ref": "#/$defs/CustomGridCellSize"
+                }
+              ],
+              "default": {
+                "auto_scale_or_custom": "Auto-scale"
+              },
+              "title": "Grid Cell Size",
+              "ecoscope:advanced": true
+            },
+            "crs": {
+              "default": "EPSG:3857",
+              "title": "Coordinate Reference System",
+              "type": "string",
+              "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
+              "ecoscope:advanced": true
+            }
+          },
+          "type": "object",
+          "required": [],
+          "title": ""
+        },
+        "grouped_event_density": {
+          "additionalProperties": false,
+          "properties": {
+            "sum_column": {
+              "default": null,
+              "title": "Aggregate Column",
+              "type": "string",
+              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead."
+            }
+          },
+          "required": [],
+          "type": "object",
+          "title": ""
+        }
+      }
     }
   },
   "$defs": {
@@ -700,8 +698,8 @@
     },
     "Event Sum Map": {
       "ui:order": [
-        "agg_column_input",
-        "density_grid_options"
+        "density_grid_options",
+        "grouped_event_density"
       ],
       "density_grid_options": {
         "ui:order": [
@@ -742,8 +740,8 @@
       "get_events_data",
       "Filter Data",
       "Group Data",
-      "Event Sum Map",
-      "base_map_defs"
+      "base_map_defs",
+      "Event Sum Map"
     ],
     "base_map_defs": {
       "base_maps": {

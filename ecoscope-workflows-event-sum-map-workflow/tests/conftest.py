@@ -43,7 +43,7 @@ MATCHSPEC_OVERRIDE = "ecoscope-workflows-event-sum-map-workflow"
 RESULTS_ENV_VAR = "ECOSCOPE_WORKFLOWS_RESULTS"
 IO_TASKS_IMPORTABLE_REFERENCES = [
     "ecoscope.platform.tasks.io.get_events",
-    "ecoscope_workflows_ext_custom.tasks.io.process_events_details",
+    "ecoscope.platform.tasks.io.process_events_details",
     "ecoscope.platform.tasks.io.get_spatial_features_group",
 ]
 

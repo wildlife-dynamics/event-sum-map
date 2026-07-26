@@ -1,19 +1,38 @@
 id: event_sum_map
 
 requirements:
-  # ecoscope-platform 2.16.3 carries the shared density-map meta tasks
-  # (set_density_grid_options / call_meshgrid_from_combined_params /
-  # get_opacity_from_combined_params) introduced for patrol-efforts.
-  - name: ecoscope-platform
-    version: ">=2.16.3, <2.17.0"
+  # DEV ONLY: local editable ecoscope on branch ltd-patrol-density-weighting,
+  # which carries the optional-sum-mode calculate_feature_density change plus
+  # the process_events_details / drop_column_prefix platform promotions.
+  # Before publish, revert to a released ecoscope-platform pin that includes
+  # that branch (> 2.17.0). Run dev/postcompile-editable.sh after every
+  # compile (pydantic + platform patches), then test with --frozen.
+  - name: ecoscope
+    path: /Users/yunwu/MEP/wt-tasks/ecoscope
+    editable: true
+    extras: ["platform", "mapping", "analysis"]
+  # Editable-mode conda pins (see ecoscope-spec.md "editable dev-mode pitfalls"):
+  # ecoscope requires lonboard ==0.0.8, which only exists as the conda build on
+  # the ecoscope-workflows channel — pin it there so uv never resolves lonboard
+  # from PyPI. numpy is pinned strictly by ecoscope; pydeck 0.9.2 as usual
+  # (wildlife-dynamics/wt#167).
+  - name: lonboard
+    version: "==0.0.8"
     channel: https://repo.prefix.dev/ecoscope-workflows/
-  # process_events_details / drop_column_prefix (wt-download-events details chain).
-  - name: ecoscope-workflows-ext-custom
-    version: 0.1.0rc18
-    channel: https://repo.prefix.dev/ecoscope-workflows-custom/
-  # ecoscope-platform already declares this exact pydeck dependency. It is
-  # re-stated here as a workaround for a known issue. For further detail, see:
-  # https://github.com/wildlife-dynamics/wt/issues/167#issuecomment-4451993697
+  - name: numpy
+    version: ">=2,<2.1"
+    channel: conda-forge
+  # ecoscope-earthranger-io-core (git v0.0.21) requires pyarrow <24; without
+  # this pin the conda solve picks a newer pyarrow and the pypi solve conflicts.
+  - name: pyarrow
+    version: ">=20,<24"
+    channel: conda-forge
+  # rasterio from conda (GDAL native libs); <1.5 keeps libgdal below the
+  # version that conflicts with lonboard 0.0.8 -> pyogrio. PyPI rasterio 1.5.0
+  # has no osx-arm64 wheel, so uv would otherwise try (and fail) an sdist build.
+  - name: rasterio
+    version: ">=1.3,<1.5"
+    channel: conda-forge
   - name: pydeck
     version: "0.9.2"
     channel: conda-forge
@@ -48,13 +67,12 @@ rjsf-overrides:
         opacity: 0.5
 
     # --- Event Sum Map: aggregate column + grid options ---
-    "Event Sum Map.properties.agg_column_input.title": ""
-    "Event Sum Map.properties.agg_column_input.properties.var.title": "Aggregate Column"
-    "Event Sum Map.properties.agg_column_input.properties.var.description": >-
+    "Event Sum Map.properties.grouped_event_density.title": ""
+    "Event Sum Map.properties.grouped_event_density.properties.sum_column.title": "Aggregate Column"
+    "Event Sum Map.properties.grouped_event_density.properties.sum_column.description": >-
       Event details field whose values are totaled per grid cell, using the field title
       shown in EarthRanger (for example Number of Animals). Leave empty to count events
       per cell instead.
-    "Event Sum Map.properties.agg_column_input.properties.var.default": ""
     "Event Sum Map.properties.density_grid_options.title": ""
 
     # --- Filter Data: location filter card ---
@@ -281,72 +299,6 @@ workflow:
       gdf: ${{ workflow.events_add_temporal_index.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
 
-  # ---------- Event Sum Map settings ----------
-  - title: Event Sum Map
-    type: task-group
-    description: >-
-      Grid heatmap that totals a chosen event value — or counts events — per cell.
-    tasks:
-      - name: Aggregate Column
-        id: agg_column_input
-        task: set_string_var
-
-      - name: Density Grid Options
-        id: density_grid_options
-        task: set_density_grid_options
-        # opacity / cell size / crs are all ecoscope:advanced -> the card's single
-        # Advanced Configurations accordion.
-        partial:
-          intersecting_only: false
-
-      # Empty Aggregate Column -> fall back to the constant ones column, so the
-      # per-cell sum degenerates to an event count.
-      - name: Resolve Aggregate Column
-        id: agg_column
-        task: default_if_string_is_empty
-        partial:
-          value: ${{ workflow.agg_column_input.return }}
-          default: __event_count__
-
-  # Invisible extractor: opacity for the heatmap polygon layer.
-  - name: Heatmap Layer Opacity
-    id: heatmap_opacity
-    task: get_opacity_from_combined_params
-    partial:
-      combined_params: ${{ workflow.density_grid_options.return }}
-
-  # ---------- Aggregate column preparation ----------
-  # Constant ones column: summing it per cell equals counting events.
-  - name: Add Event Count Column
-    id: add_count_column
-    task: assign_value
-    partial:
-      df: ${{ workflow.events_add_spatial_index.return }}
-      column_name: __event_count__
-      value: 1
-      noop_if_column_exists: false
-
-  # Guarantee the chosen column exists (all-NaN when absent) so the density
-  # task never KeyErrors on a typo'd or partially-populated details field.
-  - name: Ensure Aggregate Column Exists
-    id: ensure_agg_column
-    task: assign_value
-    partial:
-      df: ${{ workflow.add_count_column.return }}
-      column_name: ${{ workflow.agg_column.return }}
-      value: null
-      noop_if_column_exists: true
-
-  # Event details values often arrive as strings; force numeric so the per-cell
-  # sum works (non-castable values become NaN and drop out of the sum).
-  - name: Cast Aggregate Column to Numeric
-    id: agg_to_numeric
-    task: convert_column_values_to_numeric
-    partial:
-      df: ${{ workflow.ensure_agg_column.return }}
-      columns:
-        - ${{ workflow.agg_column.return }}
-
   - name: Map Title
     id: set_map_title
     task: set_string_var
@@ -362,14 +314,30 @@ workflow:
     id: split_event_groups
     task: split_groups
     partial:
-      df: ${{ workflow.agg_to_numeric.return }}
+      df: ${{ workflow.events_add_spatial_index.return }}
       groupers: ${{ workflow.resolved_groupers.return }}
 
   # ---------- Event Sum Map (gridded totals) ----------
-  - title: Event Sum Map Rendering
+  - title: Event Sum Map
     type: task-group
-    description: "Grid heatmap of per-cell event totals."
+    description: >-
+      Grid heatmap that totals a chosen event value — or counts events — per cell.
     tasks:
+      - name: Density Grid Options
+        id: density_grid_options
+        task: set_density_grid_options
+        # opacity / cell size / crs are all ecoscope:advanced -> the card's single
+        # Advanced Configurations accordion.
+        partial:
+          intersecting_only: false
+
+      # Invisible extractor: opacity for the heatmap polygon layer.
+      - name: Heatmap Layer Opacity
+        id: heatmap_opacity
+        task: get_opacity_from_combined_params
+        partial:
+          combined_params: ${{ workflow.density_grid_options.return }}
+
       - name: Event Meshgrid
         id: events_meshgrid
         task: call_meshgrid_from_combined_params
@@ -379,16 +347,17 @@ workflow:
             - any_dependency_skipped
             - all_geometry_are_none
         partial:
-          aoi: ${{ workflow.agg_to_numeric.return }}
+          aoi: ${{ workflow.events_add_spatial_index.return }}
           combined_params: ${{ workflow.density_grid_options.return }}
 
+      # sum_column stays unbound -> the card's "Aggregate Column" field. Empty
+      # means count events per cell (optional sum mode in the task itself).
       - name: Calculate Event Totals per Cell
         id: grouped_event_density
         task: calculate_feature_density
         partial:
           meshgrid: ${{ workflow.events_meshgrid.return }}
           geometry_type: point
-          sum_column: ${{ workflow.agg_column.return }}
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_event_groups.return }}

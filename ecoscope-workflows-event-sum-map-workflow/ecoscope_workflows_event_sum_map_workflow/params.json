@@ -155,59 +155,6 @@
       "required": [],
       "title": "Group Data"
     },
-    "agg_column_input": {
-      "additionalProperties": false,
-      "properties": {
-        "var": {
-          "title": "",
-          "type": "string"
-        }
-      },
-      "required": [
-        "var"
-      ],
-      "type": "object",
-      "title": "Aggregate Column"
-    },
-    "density_grid_options": {
-      "additionalProperties": false,
-      "properties": {
-        "opacity": {
-          "default": 0.7,
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Heatmap Layer Opacity",
-          "type": "number",
-          "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
-          "ecoscope:advanced": true
-        },
-        "auto_scale_or_custom_cell_size": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/AutoScaleGridCellSize"
-            },
-            {
-              "$ref": "#/$defs/CustomGridCellSize"
-            }
-          ],
-          "default": {
-            "auto_scale_or_custom": "Auto-scale"
-          },
-          "title": "Grid Cell Size",
-          "ecoscope:advanced": true
-        },
-        "crs": {
-          "default": "EPSG:3857",
-          "title": "Coordinate Reference System",
-          "type": "string",
-          "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
-          "ecoscope:advanced": true
-        }
-      },
-      "type": "object",
-      "required": [],
-      "title": "Density Grid Options"
-    },
     "base_map_defs": {
       "additionalProperties": false,
       "properties": {
@@ -400,6 +347,59 @@
       "type": "object",
       "required": [],
       "title": "Map Base Layers"
+    },
+    "density_grid_options": {
+      "additionalProperties": false,
+      "properties": {
+        "opacity": {
+          "default": 0.7,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Heatmap Layer Opacity",
+          "type": "number",
+          "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
+          "ecoscope:advanced": true
+        },
+        "auto_scale_or_custom_cell_size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AutoScaleGridCellSize"
+            },
+            {
+              "$ref": "#/$defs/CustomGridCellSize"
+            }
+          ],
+          "default": {
+            "auto_scale_or_custom": "Auto-scale"
+          },
+          "title": "Grid Cell Size",
+          "ecoscope:advanced": true
+        },
+        "crs": {
+          "default": "EPSG:3857",
+          "title": "Coordinate Reference System",
+          "type": "string",
+          "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
+          "ecoscope:advanced": true
+        }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Density Grid Options"
+    },
+    "grouped_event_density": {
+      "additionalProperties": false,
+      "properties": {
+        "sum_column": {
+          "default": null,
+          "title": "Sum Column",
+          "type": "string",
+          "description": "Sum values in this column per grid cell, rather than counting rows. Leave empty to count rows per cell."
+        }
+      },
+      "required": [],
+      "type": "object",
+      "title": "Calculate Event Totals per Cell"
     }
   },
   "$defs": {
@@ -650,9 +650,9 @@
       "get_events_data",
       "filter_events",
       "groupers",
-      "agg_column_input",
+      "base_map_defs",
       "density_grid_options",
-      "base_map_defs"
+      "grouped_event_density"
     ]
   },
   "additionalProperties": false
