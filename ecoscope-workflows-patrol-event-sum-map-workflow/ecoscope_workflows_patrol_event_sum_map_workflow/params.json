@@ -77,23 +77,7 @@
           },
           "title": "Event Types",
           "type": "array",
-          "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types.",
-          "ecoscope:transform": [
-            {
-              "transformer": "EarthRangerEnumResolver",
-              "transformer_kws": {
-                "type": "event_type",
-                "depends_on": "properties.er_client_name.properties.data_source.properties.name"
-              }
-            }
-          ]
-        },
-        "force_point_geometry": {
-          "default": true,
-          "title": "Force Point Geometry",
-          "type": "boolean",
-          "description": "If True, polygon/multipolygon event geometries are reduced to their centroid. Set False to preserve native geometry types.",
-          "ecoscope:advanced": true
+          "description": "Specify the event type(s) to analyze (optional). Leave this section empty to analyze all event types."
         }
       },
       "required": [
@@ -102,90 +86,67 @@
       "type": "object",
       "title": "Event Types"
     },
-    "Filter Data": {
-      "type": "object",
-      "description": " ",
-      "ecoscope:task_group": true,
+    "filter_events": {
+      "additionalProperties": false,
       "properties": {
-        "filter_events": {
-          "additionalProperties": false,
-          "properties": {
-            "bounding_box": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/BoundingBox"
-                }
-              ],
-              "default": {
-                "min_y": -90.0,
-                "max_y": 90.0,
-                "min_x": -180.0,
-                "max_x": 180.0
-              },
-              "title": "Bounding Box",
-              "description": "Only include events whose coordinates fall inside this bounding box.",
-              "ecoscope:advanced": true
-            },
-            "filter_point_coords": {
-              "default": [],
-              "items": {
-                "$ref": "#/$defs/Coordinate"
-              },
-              "title": "Filter Exact Point Coordinates",
-              "type": "array",
-              "description": "Exclude events recorded at these exact coordinates (e.g. known bad GPS fixes).",
-              "ecoscope:advanced": true
+        "bounding_box": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/BoundingBox"
             }
+          ],
+          "default": {
+            "min_y": -90.0,
+            "max_y": 90.0,
+            "min_x": -180.0,
+            "max_x": 180.0
           },
-          "required": [],
-          "type": "object",
-          "title": ""
+          "title": "Bounding Box",
+          "description": "Filter events to inside these bounding coordinates.",
+          "ecoscope:advanced": true
+        },
+        "filter_point_coords": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Coordinate"
+          },
+          "title": "Filter Exact Point Coordinates",
+          "type": "array",
+          "description": "By adding a filter, the workflow will not include events recorded at the specified coordinates.",
+          "ecoscope:advanced": true
         }
-      }
-    },
-    "Group Data": {
+      },
+      "required": [],
       "type": "object",
-      "description": "Configure how events are grouped (by category or temporal index) and split into per-group dashboard views.",
-      "ecoscope:task_group": true,
+      "title": "Event Location Filter"
+    },
+    "groupers": {
+      "additionalProperties": false,
       "properties": {
         "groupers": {
-          "additionalProperties": false,
-          "properties": {
-            "groupers": {
-              "default": null,
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/ValueGrouper"
-                  },
-                  {
-                    "$ref": "#/$defs/TemporalGrouper"
-                  },
-                  {
-                    "$ref": "#/$defs/SpatialGrouper"
-                  }
-                ],
-                "title": "Group by"
+          "default": null,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ValueGrouper"
               },
-              "title": " ",
-              "type": "array",
-              "description": "",
-              "ecoscope:transform": [
-                {
-                  "transformer": "EarthRangerEnumResolver",
-                  "transformer_kws": {
-                    "type": "spatial_feature_group",
-                    "depends_on": "properties.er_client_name.properties.data_source.properties.name"
-                  }
-                }
-              ]
-            }
+              {
+                "$ref": "#/$defs/TemporalGrouper"
+              },
+              {
+                "$ref": "#/$defs/SpatialGrouper"
+              }
+            ],
+            "title": "Group by"
           },
-          "type": "object",
-          "required": [],
-          "title": ""
+          "title": " ",
+          "type": "array",
+          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            "
         }
-      }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Group Data"
     },
     "base_map_defs": {
       "additionalProperties": false,
@@ -194,11 +155,15 @@
           "default": [
             {
               "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-              "opacity": 1.0
+              "opacity": 1,
+              "max_zoom": 20,
+              "min_zoom": 0
             },
             {
               "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-              "opacity": 0.5
+              "opacity": 0.5,
+              "max_zoom": 20,
+              "min_zoom": 0
             }
           ],
           "items": {
@@ -376,65 +341,58 @@
       "required": [],
       "title": "Map Base Layers"
     },
-    "Event Sum Map": {
-      "type": "object",
-      "description": "Grid heatmap that totals a chosen event value \u2014 or counts events \u2014 per cell.",
-      "ecoscope:task_group": true,
+    "density_grid_options": {
+      "additionalProperties": false,
       "properties": {
-        "density_grid_options": {
-          "additionalProperties": false,
-          "properties": {
-            "opacity": {
-              "default": 0.7,
-              "maximum": 1.0,
-              "minimum": 0.0,
-              "title": "Heatmap Layer Opacity",
-              "type": "number",
-              "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
-              "ecoscope:advanced": true
-            },
-            "auto_scale_or_custom_cell_size": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/AutoScaleGridCellSize"
-                },
-                {
-                  "$ref": "#/$defs/CustomGridCellSize"
-                }
-              ],
-              "default": {
-                "auto_scale_or_custom": "Auto-scale"
-              },
-              "title": "Grid Cell Size",
-              "ecoscope:advanced": true
-            },
-            "crs": {
-              "default": "EPSG:3857",
-              "title": "Coordinate Reference System",
-              "type": "string",
-              "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
-              "ecoscope:advanced": true
-            }
-          },
-          "type": "object",
-          "required": [],
-          "title": ""
+        "opacity": {
+          "default": 0.7,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Heatmap Layer Opacity",
+          "type": "number",
+          "description": "Set heatmap layer transparency from 1 (fully visible) to 0 (hidden).",
+          "ecoscope:advanced": true
         },
-        "grouped_event_density": {
-          "additionalProperties": false,
-          "properties": {
-            "sum_column": {
-              "default": null,
-              "title": "Aggregate Column",
-              "type": "string",
-              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead."
+        "auto_scale_or_custom_cell_size": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AutoScaleGridCellSize"
+            },
+            {
+              "$ref": "#/$defs/CustomGridCellSize"
             }
+          ],
+          "default": {
+            "auto_scale_or_custom": "Auto-scale"
           },
-          "required": [],
-          "type": "object",
-          "title": ""
+          "title": "Grid Cell Size",
+          "ecoscope:advanced": true
+        },
+        "crs": {
+          "default": "EPSG:3857",
+          "title": "Coordinate Reference System",
+          "type": "string",
+          "description": "The coordinate reference system in which to perform the calculation, must be a valid CRS authority code, for example ESRI:53042",
+          "ecoscope:advanced": true
         }
-      }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Density Grid Options"
+    },
+    "grouped_event_density": {
+      "additionalProperties": false,
+      "properties": {
+        "sum_column": {
+          "default": null,
+          "title": "Sum Column",
+          "type": "string",
+          "description": "Sum values in this column per grid cell, rather than counting rows. Leave empty to count rows per cell."
+        }
+      },
+      "required": [],
+      "type": "object",
+      "title": "Calculate Event Totals per Cell"
     }
   },
   "$defs": {
@@ -590,28 +548,17 @@
       "type": "object"
     },
     "ValueGrouper": {
-      "title": "Category",
-      "type": "object",
       "properties": {
         "index_name": {
-          "title": "Index Name",
-          "type": "string",
-          "oneOf": [
-            {
-              "const": "event_type",
-              "title": "Event Type"
-            },
-            {
-              "const": "event_category",
-              "title": "Event Category"
-            },
-            {
-              "const": "reported_by_name",
-              "title": "Reported By"
-            }
-          ]
+          "title": "Category",
+          "type": "string"
         }
-      }
+      },
+      "required": [
+        "index_name"
+      ],
+      "title": "Category",
+      "type": "object"
     },
     "AutoScaleGridCellSize": {
       "properties": {
@@ -670,88 +617,30 @@
         "timezone"
       ]
     },
-    "get_events_data": {
+    "filter_events": {
       "ui:order": [
-        "event_types",
-        "force_point_geometry"
-      ],
-      "event_types": {
-        "items": {
-          "ui:help": "If you are on Ecoscope Desktop, \"Event Type\" values can be found in your EarthRanger Admin site under Activity \u2192 Event Types."
-        }
-      }
+        "bounding_box",
+        "filter_point_coords"
+      ]
     },
-    "Filter Data": {
-      "filter_events": {
-        "ui:order": [
-          "bounding_box",
-          "filter_point_coords"
-        ],
-        "filter_point_coords": {
-          "items": {
-            "ui:options": {
-              "label": false
-            }
-          }
-        }
-      }
-    },
-    "Event Sum Map": {
+    "density_grid_options": {
       "ui:order": [
-        "density_grid_options",
-        "grouped_event_density"
-      ],
-      "density_grid_options": {
-        "ui:order": [
-          "opacity",
-          "auto_scale_or_custom_cell_size",
-          "crs"
-        ],
-        "auto_scale_or_custom_cell_size": {
-          "anyOf": [
-            {
-              "ui:help": "Auto-scale for an optimized grid cell size based on the workflow data or Customize to set a specific grid cell size.",
-              "ui:options": {
-                "label": false
-              },
-              "auto_scale_or_custom": {
-                "ui:widget": "hidden"
-              }
-            },
-            {
-              "ui:options": {
-                "label": false
-              },
-              "auto_scale_or_custom": {
-                "ui:widget": "hidden"
-              }
-            }
-          ],
-          "auto_scale_or_custom": {
-            "ui:widget": "hidden"
-          }
-        }
-      }
+        "opacity",
+        "auto_scale_or_custom_cell_size",
+        "crs"
+      ]
     },
     "ui:order": [
       "workflow_details",
       "er_client_name",
       "time_range",
       "get_events_data",
-      "Filter Data",
-      "Group Data",
+      "filter_events",
+      "groupers",
       "base_map_defs",
-      "Event Sum Map"
-    ],
-    "base_map_defs": {
-      "base_maps": {
-        "items": {
-          "ui:options": {
-            "label": false
-          }
-        }
-      }
-    }
+      "density_grid_options",
+      "grouped_event_density"
+    ]
   },
   "additionalProperties": false
 }

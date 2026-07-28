@@ -5,8 +5,8 @@
 
 ```yaml
 # fingerprint:
-artifacts_sha256_basic: c32284339b35dc9d89692eb6a7979dafb200d4522d9669b8d0182d59be1faa3e
-artifacts_sha256_strict: fad1426f927747c9457bec30fe1c6c5823566518a8851d333ec635e8ecd38a33
+artifacts_sha256_basic: bda01815b2d78c267cbe32bb53b07777f2a404c655d1f234f0213ebbad3b304b
+artifacts_sha256_strict: 8c7f8a15d0df5af5cf49cb8a4e595f0fd02f5e4f02fc2e7c354dc4e071b45fb0
 installed_requirements:
 - channel: https://repo.prefix.dev/ecoscope-workflows/
   name: lonboard
@@ -23,11 +23,11 @@ installed_requirements:
 - channel: conda-forge
   name: pydeck
   version: {version: ==0.9.2}
-params_sha256: 954004ea3460ce4a6be4065b51bcaf30845b8077d4e022a6439e16c76b13160d
-spec_sha256: 2a44f5c909bddb2d076e65198ddc493c52a2a867c702a59177d89590d2bd9fa0
+params_sha256: 08d49f6a4a68c639b388957fb199cfaf95e0e1ee2fa125e597f45193a8135749
+spec_sha256: a92cb2cb77a97cb66919b7d71f73b1e21d988d8629bf2212c34a536d6724307b
 
 ```
 
-# ecoscope-workflows-event-sum-map-workflow
+# ecoscope-workflows-patrol-event-sum-map-workflow
 
 ![](graph.png)

@@ -1,4 +1,4 @@
-id: event_sum_map
+id: patrol_event_sum_map
 
 requirements:
   # DEV ONLY: local editable ecoscope on branch ltd-patrol-density-weighting,
@@ -118,6 +118,12 @@ rjsf-overrides:
             ui:widget: hidden
       auto_scale_or_custom:
         ui:widget: hidden
+    # Card-level field order: Aggregate Column above the grid options (whose
+    # fields all sit in the Advanced Configurations accordion). Task order
+    # inside the group must stay topological, so reorder here instead.
+    "Event Sum Map.ui:order":
+      - grouped_event_density
+      - "*"
 
 task-instance-defaults:
   skipif:
@@ -169,6 +175,7 @@ workflow:
       include_updates: false
       include_related_events: false
       include_display_values: true
+      force_point_geometry: true
 
   # ---------- Process Events ----------
   - name: Convert Events to Timezone
