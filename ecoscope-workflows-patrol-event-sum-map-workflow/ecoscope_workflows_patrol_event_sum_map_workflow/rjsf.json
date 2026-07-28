@@ -374,6 +374,20 @@
       "description": "Grid heatmap that totals a chosen event value \u2014 or counts events \u2014 per cell.",
       "ecoscope:task_group": true,
       "properties": {
+        "agg_column": {
+          "additionalProperties": false,
+          "properties": {
+            "var": {
+              "default": "",
+              "title": "Aggregate Column",
+              "type": "string",
+              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead."
+            }
+          },
+          "type": "object",
+          "required": [],
+          "title": ""
+        },
         "density_grid_options": {
           "additionalProperties": false,
           "properties": {
@@ -411,20 +425,6 @@
           },
           "type": "object",
           "required": [],
-          "title": ""
-        },
-        "grouped_event_density": {
-          "additionalProperties": false,
-          "properties": {
-            "sum_column": {
-              "default": null,
-              "title": "Aggregate Column",
-              "type": "string",
-              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead."
-            }
-          },
-          "required": [],
-          "type": "object",
           "title": ""
         }
       }
@@ -680,8 +680,8 @@
     },
     "Event Sum Map": {
       "ui:order": [
-        "grouped_event_density",
-        "*"
+        "agg_column",
+        "density_grid_options"
       ],
       "density_grid_options": {
         "ui:order": [

@@ -66,8 +66,8 @@ sum-column:
       event_types: ["wildlife_sighting_rep", "hwc_rep"]
     groupers:
       groupers: []
-    grouped_event_density:
-      sum_column: "Number of Animals"
+    agg_column:
+      var: "Number of Animals"
     density_grid_options:              # the Advanced Configurations accordion
       opacity: 0.5
       auto_scale_or_custom_cell_size:

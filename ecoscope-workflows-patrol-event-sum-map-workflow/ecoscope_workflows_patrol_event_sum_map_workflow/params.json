@@ -341,6 +341,19 @@
       "required": [],
       "title": "Map Base Layers"
     },
+    "agg_column": {
+      "additionalProperties": false,
+      "properties": {
+        "var": {
+          "default": "",
+          "title": "",
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [],
+      "title": "Aggregate Column"
+    },
     "density_grid_options": {
       "additionalProperties": false,
       "properties": {
@@ -379,20 +392,6 @@
       "type": "object",
       "required": [],
       "title": "Density Grid Options"
-    },
-    "grouped_event_density": {
-      "additionalProperties": false,
-      "properties": {
-        "sum_column": {
-          "default": null,
-          "title": "Sum Column",
-          "type": "string",
-          "description": "Sum values in this column per grid cell, rather than counting rows. Leave empty to count rows per cell."
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Calculate Event Totals per Cell"
     }
   },
   "$defs": {
@@ -638,8 +637,8 @@
       "filter_events",
       "groupers",
       "base_map_defs",
-      "density_grid_options",
-      "grouped_event_density"
+      "agg_column",
+      "density_grid_options"
     ]
   },
   "additionalProperties": false

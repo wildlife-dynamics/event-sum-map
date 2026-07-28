@@ -14,6 +14,9 @@ from ecoscope.platform.tasks.config import (
 from ecoscope.platform.tasks.config import (
     set_density_grid_options as set_density_grid_options,
 )
+from ecoscope.platform.tasks.config import (
+    set_optional_string_var as set_optional_string_var,
+)
 from ecoscope.platform.tasks.config import set_string_var as set_string_var
 from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
 from ecoscope.platform.tasks.filter import (
@@ -530,6 +533,23 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    agg_column = (
+        task(set_optional_string_var)
+        .validate()
+        .set_task_instance_id("agg_column")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(**(params.get("agg_column") or {}))
+        .call()
+    )
+
     density_grid_options = (
         task(set_density_grid_options)
         .validate()
@@ -605,6 +625,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             meshgrid=events_meshgrid,
             geometry_type="point",
+            sum_column=agg_column,
             **(params.get("grouped_event_density") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=split_event_groups)

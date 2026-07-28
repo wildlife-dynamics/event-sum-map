@@ -67,9 +67,9 @@ rjsf-overrides:
         opacity: 0.5
 
     # --- Event Sum Map: aggregate column + grid options ---
-    "Event Sum Map.properties.grouped_event_density.title": ""
-    "Event Sum Map.properties.grouped_event_density.properties.sum_column.title": "Aggregate Column"
-    "Event Sum Map.properties.grouped_event_density.properties.sum_column.description": >-
+    "Event Sum Map.properties.agg_column.title": ""
+    "Event Sum Map.properties.agg_column.properties.var.title": "Aggregate Column"
+    "Event Sum Map.properties.agg_column.properties.var.description": >-
       Event details field whose values are totaled per grid cell, using the field title
       shown in EarthRanger (for example Number of Animals). Leave empty to count events
       per cell instead.
@@ -118,12 +118,6 @@ rjsf-overrides:
             ui:widget: hidden
       auto_scale_or_custom:
         ui:widget: hidden
-    # Card-level field order: Aggregate Column above the grid options (whose
-    # fields all sit in the Advanced Configurations accordion). Task order
-    # inside the group must stay topological, so reorder here instead.
-    "Event Sum Map.ui:order":
-      - grouped_event_density
-      - "*"
 
 task-instance-defaults:
   skipif:
@@ -330,6 +324,12 @@ workflow:
     description: >-
       Grid heatmap that totals a chosen event value — or counts events — per cell.
     tasks:
+      # Declared first so the card renders Aggregate Column above the grid
+      # options' Advanced Configurations accordion (card order = task order).
+      - name: Aggregate Column
+        id: agg_column
+        task: set_optional_string_var
+
       - name: Density Grid Options
         id: density_grid_options
         task: set_density_grid_options
@@ -357,14 +357,15 @@ workflow:
           aoi: ${{ workflow.events_add_spatial_index.return }}
           combined_params: ${{ workflow.density_grid_options.return }}
 
-      # sum_column stays unbound -> the card's "Aggregate Column" field. Empty
-      # means count events per cell (optional sum mode in the task itself).
+      # Empty Aggregate Column -> sum_column "" -> the task counts events per
+      # cell (optional sum mode in calculate_feature_density itself).
       - name: Calculate Event Totals per Cell
         id: grouped_event_density
         task: calculate_feature_density
         partial:
           meshgrid: ${{ workflow.events_meshgrid.return }}
           geometry_type: point
+          sum_column: ${{ workflow.agg_column.return }}
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.split_event_groups.return }}
