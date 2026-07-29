@@ -426,6 +426,15 @@ workflow:
           value: ${{ workflow.agg_column.return }}
           default: "Total"
 
+      # Invisible: legend title — "<label> per Grid Cell".
+      - name: Legend Title
+        id: esm_legend_title
+        task: concat_string_vars
+        partial:
+          values:
+            - ${{ workflow.esm_total_label.return }}
+            - " per Grid Cell"
+
       - name: Rename Event Total Output
         id: esm_rename
         task: map_columns
@@ -470,7 +479,7 @@ workflow:
           north_arrow_style:
             placement: top-left
           legend_style:
-            title: "Total per Grid Cell"
+            title: ${{ workflow.esm_legend_title.return }}
             format_title: false
             placement: bottom-right
           static: false

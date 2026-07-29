@@ -8,6 +8,7 @@ from ecoscope.platform.tasks.analysis import (
 from ecoscope.platform.tasks.config import (
     call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
 )
+from ecoscope.platform.tasks.config import concat_string_vars as concat_string_vars
 from ecoscope.platform.tasks.config import (
     default_if_string_is_empty as default_if_string_is_empty,
 )
@@ -737,6 +738,26 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    esm_legend_title = (
+        task(concat_string_vars)
+        .validate()
+        .set_task_instance_id("esm_legend_title")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            values=[esm_total_label, " per Grid Cell"],
+            **(params.get("esm_legend_title") or {}),
+        )
+        .call()
+    )
+
     esm_rename = (
         task(map_columns)
         .validate()
@@ -805,7 +826,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             tile_layers=base_map_defs,
             north_arrow_style={"placement": "top-left"},
             legend_style={
-                "title": "Total per Grid Cell",
+                "title": esm_legend_title,
                 "format_title": False,
                 "placement": "bottom-right",
             },
