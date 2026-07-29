@@ -155,6 +155,39 @@ spatial-grouped:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
           opacity: 1.0
 
+mep_dev_sum:
+  name: MEP Dev Sum
+  description: >-
+    Live EarthRanger (mep-dev), sum mode: GFW Integrated Alert (gfwgladalert)
+    events in July 2026, totaling their numeric "confidence" detail (schema
+    title "Confidence" — the flattened column name) per grid cell.
+  mock_io: false
+  params:
+    workflow_details:
+      name: "Patrol Event Sum Map"
+      description: "Grid heatmap of per-cell event totals."
+    er_client_name:
+      data_source:
+        name: "mep_dev"
+    time_range:
+      since: "2026-07-01T00:00:00"
+      until: "2026-07-31T23:59:59"
+      timezone:
+        label: "Africa/Nairobi (UTC+03:00)"
+        tzCode: "Africa/Nairobi"
+        name: "(UTC+03:00) Nairobi"
+        utc: "+03:00"
+    get_events_data:
+      event_types: ["gfwgladalert"]
+    groupers:
+      groupers: []
+    agg_column:
+      var: "Confidence"
+    base_map_defs:
+      base_maps:
+        - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+          opacity: 1.0
+
 mep_dev:
   name: MEP Dev
   description: >-
