@@ -417,6 +417,15 @@ workflow:
           argnames: df
           argvalues: ${{ workflow.esm_classify.return }}
 
+      # Invisible: tooltip/column label — the Aggregate Column name when one is
+      # set, else "Total" (count mode).
+      - name: Total Column Label
+        id: esm_total_label
+        task: default_if_string_is_empty
+        partial:
+          value: ${{ workflow.agg_column.return }}
+          default: "Total"
+
       - name: Rename Event Total Output
         id: esm_rename
         task: map_columns
@@ -424,7 +433,7 @@ workflow:
           drop_columns: []
           retain_columns: []
           rename_columns:
-            density: "Total"
+            density: ${{ workflow.esm_total_label.return }}
           raise_if_not_found: true
         mapvalues:
           argnames: df
@@ -447,7 +456,7 @@ workflow:
             label_column: density_bins
             color_column: density_colormap
           tooltip_columns:
-            - "Total"
+            - ${{ workflow.esm_total_label.return }}
         mapvalues:
           argnames: geodataframe
           argvalues: ${{ workflow.esm_rename.return }}

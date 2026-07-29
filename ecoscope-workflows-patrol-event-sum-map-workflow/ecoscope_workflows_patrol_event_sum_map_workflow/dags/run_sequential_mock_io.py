@@ -67,6 +67,9 @@ from ecoscope.platform.tasks.config import (
     call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
 )
 from ecoscope.platform.tasks.config import (
+    default_if_string_is_empty as default_if_string_is_empty,
+)
+from ecoscope.platform.tasks.config import (
     get_opacity_from_combined_params as get_opacity_from_combined_params,
 )
 from ecoscope.platform.tasks.config import (
@@ -737,6 +740,25 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .mapvalues(argnames=["df"], argvalues=esm_classify)
     )
 
+    esm_total_label = (
+        task(default_if_string_is_empty)
+        .validate()
+        .set_task_instance_id("esm_total_label")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            value=agg_column, default="Total", **(params.get("esm_total_label") or {})
+        )
+        .call()
+    )
+
     esm_rename = (
         task(map_columns)
         .validate()
@@ -753,7 +775,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             drop_columns=[],
             retain_columns=[],
-            rename_columns={"density": "Total"},
+            rename_columns={"density": esm_total_label},
             raise_if_not_found=True,
             **(params.get("esm_rename") or {}),
         )
@@ -781,7 +803,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
                 "opacity": heatmap_opacity,
             },
             legend={"label_column": "density_bins", "color_column": "density_colormap"},
-            tooltip_columns=["Total"],
+            tooltip_columns=[esm_total_label],
             **(params.get("esm_layer") or {}),
         )
         .mapvalues(argnames=["geodataframe"], argvalues=esm_rename)
