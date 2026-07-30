@@ -10,7 +10,7 @@ artifacts_sha256_strict: dea6aedd7041794d629ebdcd71ba7445bb89b123022a91fc3b093ed
 installed_requirements:
 - channel: https://repo.prefix.dev/ecoscope-workflows/
   name: ecoscope-platform
-  version: {version: ==2.17.2}
+  version: {version: ==2.17.3}
 - channel: conda-forge
   name: pydeck
   version: {version: ==0.9.2}
