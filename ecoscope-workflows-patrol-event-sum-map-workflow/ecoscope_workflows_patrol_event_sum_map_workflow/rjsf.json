@@ -377,11 +377,47 @@
         "agg_column": {
           "additionalProperties": false,
           "properties": {
-            "var": {
-              "default": "",
-              "title": "Aggregate Column",
-              "type": "string",
-              "description": "Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger (for example Number of Animals). Leave empty to count events per cell instead."
+            "aggregation": {
+              "default": null,
+              "title": "",
+              "type": "object",
+              "properties": {
+                "count_or_sum": {
+                  "type": "string",
+                  "title": "Measure Events By",
+                  "default": "Count",
+                  "oneOf": [
+                    {
+                      "const": "Count",
+                      "title": "Number of Events"
+                    },
+                    {
+                      "const": "Sum of Column",
+                      "title": "Sum of an Event Field"
+                    }
+                  ]
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "count_or_sum": {
+                        "const": "Sum of Column"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "column": {
+                        "type": "string",
+                        "title": "Event Field to Sum",
+                        "description": "Event details field whose values are totaled, using the field title shown in EarthRanger (for example \"Number of Animals\")."
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           "type": "object",

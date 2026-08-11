@@ -5,6 +5,9 @@ from typing import Any
 from ecoscope.platform.tasks.analysis import (
     calculate_feature_density as calculate_feature_density,
 )
+from ecoscope.platform.tasks.analysis import (
+    set_event_aggregation as set_event_aggregation,
+)
 from ecoscope.platform.tasks.config import (
     call_meshgrid_from_combined_params as call_meshgrid_from_combined_params,
 )
@@ -17,9 +20,6 @@ from ecoscope.platform.tasks.config import (
 )
 from ecoscope.platform.tasks.config import (
     set_density_grid_options as set_density_grid_options,
-)
-from ecoscope.platform.tasks.config import (
-    set_optional_string_var as set_optional_string_var,
 )
 from ecoscope.platform.tasks.config import set_string_var as set_string_var
 from ecoscope.platform.tasks.config import set_workflow_details as set_workflow_details
@@ -538,7 +538,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     agg_column = (
-        task(set_optional_string_var)
+        task(set_event_aggregation)
         .validate()
         .set_task_instance_id("agg_column")
         .handle_errors()

@@ -344,15 +344,52 @@
     "agg_column": {
       "additionalProperties": false,
       "properties": {
-        "var": {
-          "default": "",
+        "aggregation": {
+          "default": null,
           "title": "",
-          "type": "string"
+          "type": "object",
+          "properties": {
+            "count_or_sum": {
+              "type": "string",
+              "title": "Measure Events By",
+              "default": "Count",
+              "oneOf": [
+                {
+                  "const": "Count",
+                  "title": "Number of Events"
+                },
+                {
+                  "const": "Sum of Column",
+                  "title": "Sum of an Event Field"
+                }
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "count_or_sum": {
+                    "const": "Sum of Column"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "title": "Event Field to Sum",
+                    "description": "Event details field whose values are totaled, using the field title shown in EarthRanger (for example \"Number of Animals\")."
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "type": "object",
       "required": [],
-      "title": "Aggregate Column"
+      "title": "Event Aggregation"
     },
     "density_grid_options": {
       "additionalProperties": false,
