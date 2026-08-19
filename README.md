@@ -1,4 +1,4 @@
-# Patrol Event Sum Map Workflow
+# Event Sum Map Workflow
 
 ## Introduction
 
@@ -38,7 +38,7 @@ Before using this workflow, you need:
 
 1. Select "Workflow Templates" tab
 2. Click "+ Add Template"
-3. Copy and paste this URL https://github.com/wildlife-dynamics/ecoscope-workflows-patrol-event-sum-map and wait for the workflow template to be downloaded and initialized
+3. Copy and paste this URL https://github.com/wildlife-dynamics/event-sum-map and wait for the workflow template to be downloaded and initialized
 4. The template will now appear in your available template list
 
 ## Configuration Guide
@@ -49,7 +49,7 @@ Before using this workflow, you need:
 Add information that will help to differentiate this workflow from another.
 
 - **Workflow Name** (required): A descriptive name for this workflow run
-  - Example: `Patrol Event Sum Map`
+  - Example: `Event Sum Map`
 - **Workflow Description** (optional): Notes about what this run analyzes
   - Example: `Grid heatmap of per-cell event totals.`
 

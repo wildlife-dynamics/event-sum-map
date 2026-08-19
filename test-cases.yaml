@@ -13,7 +13,7 @@ base:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -50,7 +50,7 @@ sum-column:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -95,7 +95,7 @@ grouped:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -133,7 +133,7 @@ spatial-grouped:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -167,7 +167,7 @@ mep_dev_sum:
   mock_io: false
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -201,7 +201,7 @@ mep_dev:
   mock_io: false
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
