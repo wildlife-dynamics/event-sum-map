@@ -1,8 +1,9 @@
 base:
   name: Base
   description: >-
-    Mocked IO — count mode (Aggregate Column omitted): calculate_feature_density
-    counts events per grid cell when sum_column is empty.
+    Mocked IO — count mode (aggregation omitted, defaults to Number of
+    Events): calculate_feature_density counts events per grid cell when
+    sum_column is empty.
   mock_io: true
   # process_events_details (platform) is tagged "io" and intercepted by the
   # mock-io system; its stock example-return has a single row. Override it with
@@ -12,7 +13,7 @@ base:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -49,7 +50,7 @@ sum-column:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -67,7 +68,9 @@ sum-column:
     groupers:
       groupers: []
     agg_column:
-      var: "Number of Animals"
+      aggregation:
+        count_or_sum: "Sum of Column"
+        column: "Number of Animals"
     density_grid_options:              # the Advanced Configurations accordion
       opacity: 0.5
       auto_scale_or_custom_cell_size:
@@ -92,7 +95,7 @@ grouped:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -130,7 +133,7 @@ spatial-grouped:
     ecoscope.platform.tasks.io.process_events_details: dev/fixtures/process-events-details-rich.example-return.parquet
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -164,7 +167,7 @@ mep_dev_sum:
   mock_io: false
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:
@@ -182,7 +185,9 @@ mep_dev_sum:
     groupers:
       groupers: []
     agg_column:
-      var: "Confidence"
+      aggregation:
+        count_or_sum: "Sum of Column"
+        column: "Confidence"
     base_map_defs:
       base_maps:
         - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
@@ -196,7 +201,7 @@ mep_dev:
   mock_io: false
   params:
     workflow_details:
-      name: "Patrol Event Sum Map"
+      name: "Event Sum Map"
       description: "Grid heatmap of per-cell event totals."
     er_client_name:
       data_source:

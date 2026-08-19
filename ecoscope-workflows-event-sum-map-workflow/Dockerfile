@@ -19,6 +19,6 @@ ENV PORT 8080
 ENV CONCURRENCY 1
 ENV UVICORN_TIMEOUT 600
 CMD WT_INVOKERS__RESULTS_ENV_VAR=ECOSCOPE_WORKFLOWS_RESULTS \
-    ECOSCOPE_WORKFLOWS_MATCHSPEC_OVERRIDE=ecoscope-workflows-patrol-event-sum-map-workflow \
+    ECOSCOPE_WORKFLOWS_MATCHSPEC_OVERRIDE=ecoscope-workflows-event-sum-map-workflow \
     pixi run -e runner \
     uvicorn --host 0.0.0.0 --port $PORT --workers $CONCURRENCY --timeout-graceful-shutdown $UVICORN_TIMEOUT wt_runner.app:app

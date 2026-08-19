@@ -1,8 +1,9 @@
-id: patrol_event_sum_map
+id: event_sum_map
 
 requirements:
+  # set_event_aggregation + the "Measure Events By" wording require >=2.18.3.
   - name: ecoscope-platform
-    version: ">=2.17.2, <2.18.0"
+    version: ">=2.19.0, <2.20.0"
     channel: https://repo.prefix.dev/ecoscope-workflows/
   # ecoscope-platform already declares this exact pydeck dependency. it is
   # re-stated here as a workaround for a known issue. for further detail, see:
@@ -40,13 +41,10 @@ rjsf-overrides:
       - url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         opacity: 0.5
 
-    # --- Event Sum Map: aggregate column + grid options ---
+    # --- Event Sum Map: aggregation selector + grid options ---
+    # The Count | Sum-of-Column selector titles ("Measure Events By" etc.)
+    # come from _EVENT_AGGREGATION_EXTRA on the task parameter itself.
     "Event Sum Map.properties.agg_column.title": ""
-    "Event Sum Map.properties.agg_column.properties.var.title": "Aggregate Column"
-    "Event Sum Map.properties.agg_column.properties.var.description": >-
-      Event details field whose values are totaled per grid cell, using the field title
-      shown in EarthRanger (for example Number of Animals). Leave empty to count events
-      per cell instead.
     "Event Sum Map.properties.density_grid_options.title": ""
 
     # --- Filter Data: location filter card ---
@@ -166,10 +164,13 @@ workflow:
         - name
       output_type: str
       output_column_name: reported_by_name
+      # only meaningful for output_type 'series'; pin it so the no-op
+      # "Fan Out" checkbox stays off the config form
+      fan_out: true
 
   # Details chain (wt-download-events pattern): resolve event_details against
   # the ER event-type schemas (keys -> display titles, enums -> labels), then
-  # flatten into top-level columns so the user-chosen Aggregate Column is
+  # flatten into top-level columns so the user-chosen Event Field to Sum is
   # addressable by the display title shown in EarthRanger.
   - name: Process Event Details
     id: process_event_details
@@ -298,11 +299,12 @@ workflow:
     description: >-
       Grid heatmap that totals a chosen event value — or counts events — per cell.
     tasks:
-      # Declared first so the card renders Aggregate Column above the grid
-      # options' Advanced Configurations accordion (card order = task order).
-      - name: Aggregate Column
+      # Declared first so the card renders the aggregation selector above the
+      # grid options' Advanced Configurations accordion (card order = task
+      # order). Returns the column to sum, or "" for count mode.
+      - name: Event Aggregation
         id: agg_column
-        task: set_optional_string_var
+        task: set_event_aggregation
 
       - name: Density Grid Options
         id: density_grid_options
@@ -331,8 +333,8 @@ workflow:
           aoi: ${{ workflow.events_add_spatial_index.return }}
           combined_params: ${{ workflow.density_grid_options.return }}
 
-      # Empty Aggregate Column -> sum_column "" -> the task counts events per
-      # cell (optional sum mode in calculate_feature_density itself).
+      # Count mode -> sum_column "" -> the task counts events per cell
+      # (optional sum mode in calculate_feature_density itself).
       - name: Calculate Event Totals per Cell
         id: grouped_event_density
         task: calculate_feature_density
@@ -391,8 +393,8 @@ workflow:
           argnames: df
           argvalues: ${{ workflow.esm_classify.return }}
 
-      # Invisible: tooltip/column label — the Aggregate Column name when one is
-      # set, else "Total" (count mode).
+      # Invisible: tooltip/column label — the summed field name in sum mode,
+      # else "Total" (count mode).
       - name: Total Column Label
         id: esm_total_label
         task: default_if_string_is_empty
