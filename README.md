@@ -7,7 +7,7 @@ This workflow helps you to visualize where event activity is concentrated by bui
 **What this workflow does:**
 - Downloads **events** from EarthRanger for your chosen time range and event types
 - Resolves each event's details fields into the same titles you see in EarthRanger
-- Overlays a grid on your events and, per cell, **counts events** or **sums a chosen numeric field** (the Aggregate Column)
+- Overlays a grid on your events and, per cell, **counts events** or **sums a chosen numeric field** (the Measure Events By setting)
 - Classifies the per-cell totals into 10 color bands (green = low, red = high)
 - Creates an interactive dashboard map with a legend, tooltips, and your chosen base layers
 - Optionally splits the map into per-group views (by event type, month, region, and more)
@@ -31,7 +31,7 @@ Before using this workflow, you need:
 
 3. **Event Types with data** set up in EarthRanger
    - You need events recorded in your EarthRanger system for the period you want to analyze
-   - If you plan to use the **Aggregate Column** option, the event type's report form must include a numeric field (for example, Number of Animals)
+   - If you plan to measure events by **Sum of an Event Field**, the event type's report form must include a numeric field (for example, Number of Animals)
    - You can review your event types at `https://<your-site>.pamdas.org/admin/activity/eventtype/`
 
 ## Installation
@@ -95,9 +95,11 @@ Select tile layers to use as base layers in map outputs.
 #### 7. Event Sum Map
 The gridded heatmap itself.
 
-- **Aggregate Column** (optional): Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger
+- **Measure Events By** (required): How each grid cell's total is calculated
+  - Default: `Number of Events` — counts the events that fall inside each cell
+  - Select `Sum of an Event Field` to total a numeric event details field instead; this reveals the **Event Field to Sum** setting
+- **Event Field to Sum** (shown when summing): Event details field whose values are totaled per grid cell, using the field title shown in EarthRanger
   - Example: `Number of Animals`
-  - Note: Leave empty to **count events** per cell instead
   - Note: The name must match the field title exactly, including capitalization, and the field must contain numeric values
   - Note: The map tooltip and legend take their label from this field — for example, `Number of Animals per Grid Cell` — or show `Total per Grid Cell` in count mode
 
@@ -126,7 +128,7 @@ These optional settings live in the **Advanced Configurations** sections and pro
 Once you've configured all the settings:
 
 1. **Review your configuration**
-   - Double-check your time range, data source, event types, and Aggregate Column spelling
+   - Double-check your time range, data source, event types, and — if summing an event field — the Event Field to Sum spelling
 
 2. **Save and run**
    - Click the "Submit" and the workflow will show up in "My Workflows" table button in Ecoscope Desktop
@@ -152,8 +154,8 @@ The workflow creates an interactive dashboard with one main visualization:
 - **Format**: Interactive grid heatmap over your chosen base layers
 - **Features**:
   - Each grid cell is colored by its total, in 10 equal-interval bands from green (low) through yellow to red (high)
-  - **Legend**: Shows the value range for each color band, titled `Total per Grid Cell` in count mode or `<Aggregate Column> per Grid Cell` in sum mode (for example, `Number of Animals per Grid Cell`)
-  - **Interactive hover**: Shows the cell's exact total when you mouse over it, labeled `Total` or with your Aggregate Column name
+  - **Legend**: Shows the value range for each color band, titled `Total per Grid Cell` in count mode or `<Event Field to Sum> per Grid Cell` in sum mode (for example, `Number of Animals per Grid Cell`)
+  - **Interactive hover**: Shows the cell's exact total when you mouse over it, labeled `Total` or with your summed event field's name
   - **North arrow** (top-left) and zoom controls
 - **Grouped views**: If you configured Group Data, use the dashboard's group selector to switch between per-group maps (e.g. one per event type, month, or region)
 
@@ -172,7 +174,7 @@ Here are some typical scenarios and how to configure the workflow for each:
   - Until: `2015-12-31T23:59:59`
   - Timezone: `UTC (UTC+00:00)`
 - **Event Types**: `wildlife_sighting_rep`
-- **Aggregate Column**: leave empty (count mode)
+- **Measure Events By**: `Number of Events`
 
 **Result**:
 - A single heatmap where each cell shows the number of sightings inside it
@@ -189,7 +191,8 @@ Here are some typical scenarios and how to configure the workflow for each:
   - Until: `2015-12-31T23:59:59`
   - Timezone: `UTC (UTC+00:00)`
 - **Event Types**: `wildlife_sighting_rep`, `hwc_rep`
-- **Aggregate Column**: `Number of Animals`
+- **Measure Events By**: `Sum of an Event Field`
+- **Event Field to Sum**: `Number of Animals`
 - **Advanced — Density Grid Options**:
   - Heatmap Layer Opacity: `0.5`
   - Grid Cell Size: `Customize`, `2500`
@@ -226,7 +229,8 @@ Here are some typical scenarios and how to configure the workflow for each:
   - Until: `2026-07-31T23:59:59`
   - Timezone: `Africa/Nairobi (UTC+03:00)`
 - **Event Types**: `gfwgladalert`
-- **Aggregate Column**: `Confidence`
+- **Measure Events By**: `Sum of an Event Field`
+- **Event Field to Sum**: `Confidence`
 
 **Result**:
 - Cells with many high-confidence alerts stand out in red
@@ -253,14 +257,14 @@ Here are some typical scenarios and how to configure the workflow for each:
 - If you set a Bounding Box filter, confirm your events fall inside it
 - Remember that only events with coordinates are mapped — events without a location are skipped
 
-#### Aggregate Column not found or totals look wrong
+#### Event Field to Sum not found or totals look wrong
 **Problem**: The workflow fails at the totals step, or every cell shows an unexpected value.
 
 **Solutions**:
 - Enter the field's **title exactly as shown in EarthRanger** (for example `Number of Animals`, not `number_of_animals`), including capitalization
 - Confirm the field actually exists on the event types you selected — it must be part of the report form
 - The field must be numeric; text or choice fields cannot be totaled
-- Leave the Aggregate Column empty if you just want to count events per cell
+- Switch Measure Events By back to `Number of Events` if you just want to count events per cell
 
 #### Grid looks too coarse or too fine
 **Problem**: The heatmap cells are too large to show detail, or so small the map looks speckled.
