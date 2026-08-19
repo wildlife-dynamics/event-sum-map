@@ -164,6 +164,9 @@ workflow:
         - name
       output_type: str
       output_column_name: reported_by_name
+      # only meaningful for output_type 'series'; pin it so the no-op
+      # "Fan Out" checkbox stays off the config form
+      fan_out: true
 
   # Details chain (wt-download-events pattern): resolve event_details against
   # the ER event-type schemas (keys -> display titles, enums -> labels), then

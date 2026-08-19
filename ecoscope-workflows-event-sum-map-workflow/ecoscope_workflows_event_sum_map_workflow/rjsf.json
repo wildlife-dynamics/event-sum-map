@@ -95,20 +95,6 @@
       "type": "object",
       "title": "Event Types"
     },
-    "extract_reported_by": {
-      "additionalProperties": false,
-      "properties": {
-        "fan_out": {
-          "default": true,
-          "title": "Fan Out",
-          "type": "boolean",
-          "description": "Only used when output_type is 'series'. If true (default), expand the extracted collection into indexed columns prefixed by output_column_name. If false, store it as a list in a single output_column_name column."
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Extract Reported By Name"
-    },
     "Filter Data": {
       "type": "object",
       "description": " ",
@@ -770,7 +756,6 @@
       "er_client_name",
       "time_range",
       "get_events_data",
-      "extract_reported_by",
       "Filter Data",
       "Group Data",
       "base_map_defs",
